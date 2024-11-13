@@ -20,3 +20,19 @@ Use form like some checkbox/switch
 ### Right
 
 Use a code editor that user can edit generated config directly
+
+## Tools
+
+- yaml
+- @monaco-editor/react
+
+## Configuration Items Example
+
+```yaml
+labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.sub-store.rule=Host(`xx.xx.xx`)"
+    - "traefik.http.services.sub-store.loadbalancer.server.port=3001"
+    - "traefik.http.routers.sub-store.entrypoints=websecure"
+    - "traefik.http.routers.sub-store.tls.certresolver=myresolver"
+```
