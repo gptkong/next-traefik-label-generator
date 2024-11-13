@@ -4,7 +4,7 @@ export default function Home() {
     <div className="grid grid-cols-3 gap-4 min-h-screen p-8">
       <div className="col-span-1">
         <Textarea
-          className="w-full h-full min-h-[500px] p-4 rounded-lg border border-border bg-background text-foreground resize-none"
+          className="w-full h-full min-h-[500px] p-4 resize-none"
           placeholder="左侧文本区域"
         />
       </div>
@@ -22,7 +22,7 @@ export default function Home() {
 
       <div className="col-span-1">
         <Textarea
-          className="w-full h-full min-h-[500px] p-4 rounded-lg border border-border bg-background text-foreground resize-none"
+          className="w-full h-full min-h-[500px] p-4 resize-none"
           placeholder="右侧文本区域"
         />
       </div>
