@@ -4,7 +4,36 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import yaml from "js-yaml";
+import jsYaml from "js-yaml";
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import {
+  oneDark,
+  oneLight,
+  dracula,
+  vscDarkPlus,
+  materialDark,
+  nord,
+  tomorrow,
+  solarizedlight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+// 注册 YAML 语言支持
+SyntaxHighlighter.registerLanguage('yaml', yaml);
+
+// 主题选项
+const themes = {
+  oneDark,
+  oneLight,
+  dracula,
+  vscDarkPlus,
+  materialDark,
+  nord,
+  tomorrow,
+  solarizedlight,
+} as const;
+
+type ThemeKey = keyof typeof themes;
 
 interface ConfigForm {
   serviceName: string;
@@ -33,10 +62,11 @@ export default function Home() {
     path: "",
     rule: "",
   });
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("vscDarkPlus");
 
   const parseYaml = () => {
     try {
-      const parsedYaml = yaml.load(leftContent) as DockerComposeConfig;
+      const parsedYaml = jsYaml.load(leftContent) as DockerComposeConfig;
       if (parsedYaml?.services) {
         const serviceName = Object.keys(parsedYaml.services)[0];
         const service = parsedYaml.services[serviceName];
@@ -54,7 +84,7 @@ export default function Home() {
 
   const generateConfig = () => {
     try {
-      const parsedYaml = yaml.load(leftContent) as DockerComposeConfig;
+      const parsedYaml = jsYaml.load(leftContent) as DockerComposeConfig;
       if (!parsedYaml?.services) return;
 
       // 更新配置
@@ -73,13 +103,13 @@ export default function Home() {
       };
 
       // 使用自定义样式输出YAML
-      const formattedYaml = yaml.dump(updatedYaml, {
-        lineWidth: -1,  // 禁用行宽限制
-        noRefs: true,   // 避免引用标记
+      const formattedYaml = jsYaml.dump(updatedYaml, {
+        lineWidth: -1,
+        noRefs: true,
         styles: {
-          '!!null': 'empty'  // 将null值显示为空
+          '!!null': 'empty'
         }
-      }).replace(/^(\w+):$/gm, '\n$1:');  // 在根节点之间添加换行
+      }).replace(/^(\w+):$/gm, '\n$1:');
 
       setRightContent(formattedYaml);
     } catch (error) {
@@ -135,6 +165,24 @@ export default function Home() {
               placeholder="输入域名 如: api.example.com"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label>代码主题</Label>
+            <select
+              value={selectedTheme}
+              onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="vscDarkPlus">VS Code Dark+</option>
+              <option value="oneDark">One Dark</option>
+              <option value="oneLight">One Light</option>
+              <option value="dracula">Dracula</option>
+              <option value="materialDark">Material Dark</option>
+              <option value="nord">Nord</option>
+              <option value="tomorrow">Tomorrow</option>
+              <option value="solarizedlight">Solarized Light</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-col gap-4 items-center mt-4">
@@ -153,14 +201,24 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="col-span-1">
-        <Textarea
-          value={rightContent}
-          onChange={(e) => setRightContent(e.target.value)}
-          className="w-full h-full min-h-[500px] p-4 resize-none font-mono"
-          placeholder="生成的YAML配置将显示在这里"
-          readOnly
-        />
+      <div className="col-span-1 relative">
+        <div className="absolute inset-0 overflow-auto">
+          <SyntaxHighlighter
+            language="yaml"
+            style={themes[selectedTheme]}
+            customStyle={{
+              margin: 0,
+              minHeight: '500px',
+              fontSize: '14px',
+              padding: '1rem',
+            }}
+            className="h-full rounded-md border border-input"
+            showLineNumbers={true}
+            wrapLines={true}
+          >
+            {rightContent || '# 生成的YAML配置将显示在这里'}
+          </SyntaxHighlighter>
+        </div>
       </div>
     </div>
   );
