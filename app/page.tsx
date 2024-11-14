@@ -215,6 +215,7 @@ export default function Home() {
             className="h-full rounded-md border border-input"
             showLineNumbers={true}
             wrapLines={true}
+            wrapLongLines={true}
           >
             {rightContent || '# 生成的YAML配置将显示在这里'}
           </SyntaxHighlighter>
