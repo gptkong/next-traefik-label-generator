@@ -13,6 +13,17 @@ interface ConfigForm {
   rule: string;
 }
 
+interface DockerComposeConfig {
+  version?: string;
+  services?: Record<string, {
+    image?: string;
+    ports?: string[];
+    labels?: string[];
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}
+
 export default function Home() {
   const [leftContent, setLeftContent] = useState("");
   const [rightContent, setRightContent] = useState("");
@@ -25,8 +36,7 @@ export default function Home() {
 
   const parseYaml = () => {
     try {
-      const parsedYaml = yaml.load(leftContent) as any;
-      // 提取服务名称和配置
+      const parsedYaml = yaml.load(leftContent) as DockerComposeConfig;
       if (parsedYaml?.services) {
         const serviceName = Object.keys(parsedYaml.services)[0];
         const service = parsedYaml.services[serviceName];
@@ -44,7 +54,7 @@ export default function Home() {
 
   const generateConfig = () => {
     try {
-      const parsedYaml = yaml.load(leftContent) as any;
+      const parsedYaml = yaml.load(leftContent) as DockerComposeConfig;
       if (!parsedYaml?.services) return;
 
       // 更新配置
@@ -62,7 +72,16 @@ export default function Home() {
         }
       };
 
-      setRightContent(yaml.dump(updatedYaml));
+      // 使用自定义样式输出YAML
+      const formattedYaml = yaml.dump(updatedYaml, {
+        lineWidth: -1,  // 禁用行宽限制
+        noRefs: true,   // 避免引用标记
+        styles: {
+          '!!null': 'empty'  // 将null值显示为空
+        }
+      }).replace(/^(\w+):$/gm, '\n$1:');  // 在根节点之间添加换行
+
+      setRightContent(formattedYaml);
     } catch (error) {
       console.error("配置生成错误:", error);
     }
