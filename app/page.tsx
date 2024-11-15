@@ -178,169 +178,173 @@ export default function Home() {
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4 min-h-screen p-4 overflow-hidden">
-      {/* 左侧表单区域 - 1/3 */}
-      <div className="col-span-1 flex flex-col gap-4 p-4 overflow-hidden">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <button className="w-full px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
-              解析YAML
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[625px]">
-            <DialogHeader>
-              <DialogTitle>输入YAML配置</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Textarea
-                value={yamlInput}
-                onChange={(e) => setYamlInput(e.target.value)}
-                className="min-h-[300px] font-mono"
-                placeholder="请输入docker-compose.yaml内容"
-              />
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex-1 grid grid-cols-3 gap-4 p-4 overflow-hidden">
+        <div className="col-span-1 flex flex-col gap-4 overflow-hidden">
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="w-full px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
+                解析YAML
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+              <DialogHeader>
+                <DialogTitle>输入YAML配置</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Textarea
+                  value={yamlInput}
+                  onChange={(e) => setYamlInput(e.target.value)}
+                  className="min-h-[300px] font-mono"
+                  placeholder="请输入docker-compose.yaml内容"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  parseYaml(yamlInput);
+                  setDialogOpen(false);
+                }}
+                className="w-full px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                确认
+              </button>
+            </DialogContent>
+          </Dialog>
+
+          <div className="flex-1 overflow-auto px-2">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>服务名称</Label>
+                <Input
+                  value={config.serviceName}
+                  onChange={(e) =>
+                    handleConfigChange("serviceName", e.target.value)
+                  }
+                  placeholder="输入服务名称"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>端口</Label>
+                <Input
+                  value={config.port}
+                  onChange={(e) => handleConfigChange("port", e.target.value)}
+                  placeholder="输入端口号"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>域名规则</Label>
+                <Input
+                  value={config.rule}
+                  onChange={(e) => handleConfigChange("rule", e.target.value)}
+                  placeholder="输入域名 如: api.example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>路径前缀</Label>
+                <Input
+                  value={config.path}
+                  onChange={(e) => handleConfigChange("path", e.target.value)}
+                  placeholder="输入路径前缀 如: /api"
+                />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <Label>Traefik 配置</Label>
+                <div className="space-y-2">
+                  <Label>Entrypoints</Label>
+                  <Input
+                    value={config.entrypoints}
+                    onChange={(e) =>
+                      handleConfigChange("entrypoints", e.target.value)
+                    }
+                    placeholder="输入 entrypoints，默认: websecure"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Cert Resolver</Label>
+                  <Input
+                    value={config.certresolver}
+                    onChange={(e) =>
+                      handleConfigChange("certresolver", e.target.value)
+                    }
+                    placeholder="输入 certresolver，默认: myresolver"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <Label>Network 配置</Label>
+                <div className="space-y-2">
+                  <Label>Network 名称</Label>
+                  <Input
+                    value={config.networkName}
+                    onChange={(e) =>
+                      handleConfigChange("networkName", e.target.value)
+                    }
+                    placeholder="输入 network 名称"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="networkExternal"
+                    checked={config.networkExternal}
+                    onChange={(e) =>
+                      handleConfigChange("networkExternal", e.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="networkExternal">External Network</Label>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>代码主题</Label>
+                <select
+                  value={selectedTheme}
+                  onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="vscDarkPlus">VS Code Dark+</option>
+                  <option value="oneDark">One Dark</option>
+                  <option value="oneLight">One Light</option>
+                  <option value="dracula">Dracula</option>
+                  <option value="materialDark">Material Dark</option>
+                  <option value="nord">Nord</option>
+                  <option value="tomorrow">Tomorrow</option>
+                  <option value="solarizedlight">Solarized Light</option>
+                </select>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                parseYaml(yamlInput);
-                setDialogOpen(false);
-              }}
-              className="w-full px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              确认
-            </button>
-          </DialogContent>
-        </Dialog>
-
-        <div className="space-y-3 overflow-y-auto flex-1">
-          <div className="space-y-2">
-            <Label>服务名称</Label>
-            <Input
-              value={config.serviceName}
-              onChange={(e) =>
-                handleConfigChange("serviceName", e.target.value)
-              }
-              placeholder="输入服务名称"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>端口</Label>
-            <Input
-              value={config.port}
-              onChange={(e) => handleConfigChange("port", e.target.value)}
-              placeholder="输入端口号"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>域名规则</Label>
-            <Input
-              value={config.rule}
-              onChange={(e) => handleConfigChange("rule", e.target.value)}
-              placeholder="输入域名 如: api.example.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>路径前缀</Label>
-            <Input
-              value={config.path}
-              onChange={(e) => handleConfigChange("path", e.target.value)}
-              placeholder="输入路径前缀 如: /api"
-            />
-          </div>
-
-          <div className="space-y-4 pt-4 border-t">
-            <Label>Traefik 配置</Label>
-            <div className="space-y-2">
-              <Label>Entrypoints</Label>
-              <Input
-                value={config.entrypoints}
-                onChange={(e) =>
-                  handleConfigChange("entrypoints", e.target.value)
-                }
-                placeholder="输入 entrypoints，默认: websecure"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cert Resolver</Label>
-              <Input
-                value={config.certresolver}
-                onChange={(e) =>
-                  handleConfigChange("certresolver", e.target.value)
-                }
-                placeholder="输入 certresolver，默认: myresolver"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4 pt-4 border-t">
-            <Label>Network 配置</Label>
-            <div className="space-y-2">
-              <Label>Network 名称</Label>
-              <Input
-                value={config.networkName}
-                onChange={(e) =>
-                  handleConfigChange("networkName", e.target.value)
-                }
-                placeholder="输入 network 名称"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="networkExternal"
-                checked={config.networkExternal}
-                onChange={(e) =>
-                  handleConfigChange("networkExternal", e.target.checked)
-                }
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="networkExternal">External Network</Label>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>代码主题</Label>
-            <select
-              value={selectedTheme}
-              onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="vscDarkPlus">VS Code Dark+</option>
-              <option value="oneDark">One Dark</option>
-              <option value="oneLight">One Light</option>
-              <option value="dracula">Dracula</option>
-              <option value="materialDark">Material Dark</option>
-              <option value="nord">Nord</option>
-              <option value="tomorrow">Tomorrow</option>
-              <option value="solarizedlight">Solarized Light</option>
-            </select>
           </div>
         </div>
-      </div>
 
-      {/* 右侧代码区域 - 2/3 */}
-      <div className="col-span-2 relative">
-        <CopyButton text={rightContent || "# 生成的YAML配置将显示在这里"} />
-        <SyntaxHighlighter
-          language="yaml"
-          style={themes[selectedTheme]}
-          customStyle={{
-            margin: 0,
-            height: "100%",
-            fontSize: "14px",
-            padding: "1rem",
-          }}
-          className="h-full rounded-md border border-input"
-          showLineNumbers={true}
-          wrapLines={true}
-          wrapLongLines={true}
-        >
-          {rightContent || "# 生成的YAML配置将显示在这里"}
-        </SyntaxHighlighter>
+        <div className="col-span-2 relative overflow-hidden">
+          <CopyButton text={rightContent || "# 生成的YAML配置将显示在这里"} />
+          <div className="h-full overflow-auto">
+            <SyntaxHighlighter
+              language="yaml"
+              style={themes[selectedTheme]}
+              customStyle={{
+                margin: 0,
+                height: '100%',
+                fontSize: '14px',
+                padding: '1rem',
+              }}
+              className="h-full rounded-md border border-input"
+              showLineNumbers={true}
+              wrapLines={true}
+              wrapLongLines={true}
+            >
+              {rightContent || "# 生成的YAML配置将显示在这里"}
+            </SyntaxHighlighter>
+          </div>
+        </div>
       </div>
     </div>
   );
