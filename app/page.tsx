@@ -5,15 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import jsYaml from "js-yaml";
-import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
-import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import yaml from "react-syntax-highlighter/dist/esm/languages/prism/yaml";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   oneDark,
   oneLight,
@@ -23,11 +23,11 @@ import {
   nord,
   tomorrow,
   solarizedlight,
-} from 'react-syntax-highlighter/dist/esm/styles/prism';
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 import { CopyButton } from "@/components/copy-button";
 
 // 注册 YAML 语言支持
-SyntaxHighlighter.registerLanguage('yaml', yaml);
+SyntaxHighlighter.registerLanguage("yaml", yaml);
 
 // 主题选项
 const themes = {
@@ -52,12 +52,15 @@ interface ConfigForm {
 
 interface DockerComposeConfig {
   version?: string;
-  services?: Record<string, {
-    image?: string;
-    ports?: string[];
-    labels?: string[];
-    [key: string]: unknown;
-  }>;
+  services?: Record<
+    string,
+    {
+      image?: string;
+      ports?: string[];
+      labels?: string[];
+      [key: string]: unknown;
+    }
+  >;
   [key: string]: unknown;
 }
 
@@ -107,19 +110,21 @@ export default function Home() {
             labels: [
               "traefik.enable=true",
               `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`) && PathPrefix(\`${currentConfig.path}\`)`,
-              `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`
-            ]
-          }
-        }
+              `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`,
+            ],
+          },
+        },
       };
 
-      const formattedYaml = jsYaml.dump(updatedYaml, {
-        lineWidth: -1,
-        noRefs: true,
-        styles: {
-          '!!null': 'empty'
-        }
-      }).replace(/^(\w+):$/gm, '\n$1:');
+      const formattedYaml = jsYaml
+        .dump(updatedYaml, {
+          lineWidth: -1,
+          noRefs: true,
+          styles: {
+            "!!null": "empty",
+          },
+        })
+        .replace(/^(\w+):$/gm, "\n$1:");
 
       setRightContent(formattedYaml);
     } catch (error) {
@@ -172,26 +177,19 @@ export default function Home() {
             <Label>服务名称</Label>
             <Input
               value={config.serviceName}
-              onChange={(e) => handleConfigChange('serviceName', e.target.value)}
+              onChange={(e) =>
+                handleConfigChange("serviceName", e.target.value)
+              }
               placeholder="输入服务名称"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>端口</Label>
-            <Input
-              value={config.port}
-              onChange={(e) => handleConfigChange('port', e.target.value)}
-              placeholder="输入端口号"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>路径前缀</Label>
+            <Label>端口</Label>
             <Input
-              value={config.path}
-              onChange={(e) => handleConfigChange('path', e.target.value)}
-              placeholder="输入路径前缀 如: /api"
+              value={config.port}
+              onChange={(e) => handleConfigChange("port", e.target.value)}
+              placeholder="输入端口号"
             />
           </div>
 
@@ -199,8 +197,17 @@ export default function Home() {
             <Label>域名规则</Label>
             <Input
               value={config.rule}
-              onChange={(e) => handleConfigChange('rule', e.target.value)}
+              onChange={(e) => handleConfigChange("rule", e.target.value)}
               placeholder="输入域名 如: api.example.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>路径前缀</Label>
+            <Input
+              value={config.path}
+              onChange={(e) => handleConfigChange("path", e.target.value)}
+              placeholder="输入路径前缀 如: /api"
             />
           </div>
 
@@ -226,22 +233,22 @@ export default function Home() {
 
       {/* 右侧代码区域 - 2/3 */}
       <div className="col-span-2 relative">
-        <CopyButton text={rightContent || '# 生成的YAML配置将显示在这里'} />
+        <CopyButton text={rightContent || "# 生成的YAML配置将显示在这里"} />
         <SyntaxHighlighter
           language="yaml"
           style={themes[selectedTheme]}
           customStyle={{
             margin: 0,
-            height: '100%',
-            fontSize: '14px',
-            padding: '1rem',
+            height: "100%",
+            fontSize: "14px",
+            padding: "1rem",
           }}
           className="h-full rounded-md border border-input"
           showLineNumbers={true}
           wrapLines={true}
           wrapLongLines={true}
         >
-          {rightContent || '# 生成的YAML配置将显示在这里'}
+          {rightContent || "# 生成的YAML配置将显示在这里"}
         </SyntaxHighlighter>
       </div>
     </div>
