@@ -50,6 +50,8 @@ interface ConfigForm {
   rule: string;
   networkName: string;
   networkExternal: boolean;
+  entrypoints: string;
+  certresolver: string;
 }
 
 interface DockerComposeConfig {
@@ -84,6 +86,8 @@ export default function Home() {
     rule: "",
     networkName: "",
     networkExternal: false,
+    entrypoints: "websecure",
+    certresolver: "myresolver",
   });
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("oneLight");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -101,6 +105,8 @@ export default function Home() {
           rule: "",
           networkName: "",
           networkExternal: false,
+          entrypoints: "websecure",
+          certresolver: "myresolver",
         };
         setConfig(newConfig);
         setYamlInput(content);
@@ -125,6 +131,8 @@ export default function Home() {
               "traefik.enable=true",
               `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`) && PathPrefix(\`${currentConfig.path}\`)`,
               `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`,
+              `traefik.http.routers.${currentConfig.serviceName}.entrypoints=${currentConfig.entrypoints}`,
+              `traefik.http.routers.${currentConfig.serviceName}.tls.certresolver=${currentConfig.certresolver}`,
             ],
             ...(currentConfig.networkName
               ? {
@@ -170,9 +178,9 @@ export default function Home() {
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4 h-screen p-4">
+    <div className="grid grid-cols-3 gap-4 min-h-screen p-4 overflow-hidden">
       {/* 左侧表单区域 - 1/3 */}
-      <div className="col-span-1 flex flex-col gap-4 p-4">
+      <div className="col-span-1 flex flex-col gap-4 p-4 overflow-hidden">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button className="w-full px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
@@ -203,7 +211,7 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        <div className="space-y-3">
+        <div className="space-y-3 overflow-y-auto flex-1">
           <div className="space-y-2">
             <Label>服务名称</Label>
             <Input
@@ -242,7 +250,33 @@ export default function Home() {
             />
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 pt-4 border-t">
+            <Label>Traefik 配置</Label>
+            <div className="space-y-2">
+              <Label>Entrypoints</Label>
+              <Input
+                value={config.entrypoints}
+                onChange={(e) =>
+                  handleConfigChange("entrypoints", e.target.value)
+                }
+                placeholder="输入 entrypoints，默认: websecure"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cert Resolver</Label>
+              <Input
+                value={config.certresolver}
+                onChange={(e) =>
+                  handleConfigChange("certresolver", e.target.value)
+                }
+                placeholder="输入 certresolver，默认: myresolver"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <Label>Network 配置</Label>
             <div className="space-y-2">
               <Label>Network 名称</Label>
               <Input
