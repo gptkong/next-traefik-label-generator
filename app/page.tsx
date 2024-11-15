@@ -48,6 +48,8 @@ interface ConfigForm {
   port: string;
   path: string;
   rule: string;
+  networkName: string;
+  networkExternal: boolean;
 }
 
 interface DockerComposeConfig {
@@ -58,6 +60,14 @@ interface DockerComposeConfig {
       image?: string;
       ports?: string[];
       labels?: string[];
+      networks?: string[];
+      [key: string]: unknown;
+    }
+  >;
+  networks?: Record<
+    string,
+    {
+      external?: boolean;
       [key: string]: unknown;
     }
   >;
@@ -72,6 +82,8 @@ export default function Home() {
     port: "",
     path: "",
     rule: "",
+    networkName: "",
+    networkExternal: false,
   });
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("vscDarkPlus");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -87,6 +99,8 @@ export default function Home() {
           port: service?.ports?.[0]?.split(":")?.[0] || "",
           path: "",
           rule: "",
+          networkName: "",
+          networkExternal: false,
         };
         setConfig(newConfig);
         setYamlInput(content);
@@ -112,8 +126,22 @@ export default function Home() {
               `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`) && PathPrefix(\`${currentConfig.path}\`)`,
               `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`,
             ],
+            ...(currentConfig.networkName
+              ? {
+                  networks: [currentConfig.networkName],
+                }
+              : {}),
           },
         },
+        ...(currentConfig.networkName
+          ? {
+              networks: {
+                [currentConfig.networkName]: {
+                  external: currentConfig.networkExternal,
+                },
+              },
+            }
+          : {}),
       };
 
       const formattedYaml = jsYaml
@@ -132,7 +160,10 @@ export default function Home() {
     }
   };
 
-  const handleConfigChange = (key: keyof ConfigForm, value: string) => {
+  const handleConfigChange = (
+    key: keyof ConfigForm,
+    value: string | boolean
+  ) => {
     const newConfig = { ...config, [key]: value };
     setConfig(newConfig);
     generateConfig(yamlInput, newConfig);
@@ -209,6 +240,32 @@ export default function Home() {
               onChange={(e) => handleConfigChange("path", e.target.value)}
               placeholder="输入路径前缀 如: /api"
             />
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Network 名称</Label>
+              <Input
+                value={config.networkName}
+                onChange={(e) =>
+                  handleConfigChange("networkName", e.target.value)
+                }
+                placeholder="输入 network 名称"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="networkExternal"
+                checked={config.networkExternal}
+                onChange={(e) =>
+                  handleConfigChange("networkExternal", e.target.checked)
+                }
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="networkExternal">External Network</Label>
+            </div>
           </div>
 
           <div className="space-y-2">
