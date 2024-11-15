@@ -9,17 +9,6 @@
 
 ## UI Design
 
-### Left
-
-Use a simple textarea or use a code editor
-
-### Middle
-
-Use form like some checkbox/switch
-
-### Right
-
-Use a code editor that user can edit generated config directly
 
 ## Tools
 
