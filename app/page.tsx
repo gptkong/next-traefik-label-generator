@@ -24,6 +24,7 @@ import {
   tomorrow,
   solarizedlight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CopyButton } from "@/components/copy-button";
 
 // 注册 YAML 语言支持
 SyntaxHighlighter.registerLanguage('yaml', yaml);
@@ -224,7 +225,8 @@ export default function Home() {
       </div>
 
       {/* 右侧代码区域 - 2/3 */}
-      <div className="col-span-2">
+      <div className="col-span-2 relative">
+        <CopyButton text={rightContent || '# 生成的YAML配置将显示在这里'} />
         <SyntaxHighlighter
           language="yaml"
           style={themes[selectedTheme]}
