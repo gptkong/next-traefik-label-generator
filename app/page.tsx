@@ -85,7 +85,7 @@ export default function Home() {
     networkName: "",
     networkExternal: false,
   });
-  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("vscDarkPlus");
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("oneLight");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const parseYaml = (content: string) => {
