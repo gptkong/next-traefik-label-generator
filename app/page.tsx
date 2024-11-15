@@ -8,6 +8,13 @@ import jsYaml from "js-yaml";
 import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   oneDark,
   oneLight,
   dracula,
@@ -54,7 +61,7 @@ interface DockerComposeConfig {
 }
 
 export default function Home() {
-  const [leftContent, setLeftContent] = useState("");
+  const [yamlInput, setYamlInput] = useState("");
   const [rightContent, setRightContent] = useState("");
   const [config, setConfig] = useState<ConfigForm>({
     serviceName: "",
@@ -63,46 +70,48 @@ export default function Home() {
     rule: "",
   });
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>("vscDarkPlus");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const parseYaml = () => {
+  const parseYaml = (content: string) => {
     try {
-      const parsedYaml = jsYaml.load(leftContent) as DockerComposeConfig;
+      const parsedYaml = jsYaml.load(content) as DockerComposeConfig;
       if (parsedYaml?.services) {
         const serviceName = Object.keys(parsedYaml.services)[0];
         const service = parsedYaml.services[serviceName];
-        setConfig({
+        const newConfig = {
           serviceName,
           port: service?.ports?.[0]?.split(":")?.[0] || "",
           path: "",
           rule: "",
-        });
+        };
+        setConfig(newConfig);
+        setYamlInput(content);
+        generateConfig(content, newConfig);
       }
     } catch (error) {
       console.error("YAML解析错误:", error);
     }
   };
 
-  const generateConfig = () => {
+  const generateConfig = (currentYaml = yamlInput, currentConfig = config) => {
     try {
-      const parsedYaml = jsYaml.load(leftContent) as DockerComposeConfig;
+      const parsedYaml = jsYaml.load(currentYaml) as DockerComposeConfig;
       if (!parsedYaml?.services) return;
 
-      // 更新配置
       const updatedYaml = {
         ...parsedYaml,
         services: {
-          [config.serviceName]: {
+          [currentConfig.serviceName]: {
             ...parsedYaml.services[Object.keys(parsedYaml.services)[0]],
             labels: [
               "traefik.enable=true",
-              `traefik.http.routers.${config.serviceName}.rule=Host(\`${config.rule}\`) && PathPrefix(\`${config.path}\`)`,
-              `traefik.http.services.${config.serviceName}.loadbalancer.server.port=${config.port}`
+              `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`) && PathPrefix(\`${currentConfig.path}\`)`,
+              `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`
             ]
           }
         }
       };
 
-      // 使用自定义样式输出YAML
       const formattedYaml = jsYaml.dump(updatedYaml, {
         lineWidth: -1,
         noRefs: true,
@@ -117,24 +126,52 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="grid grid-cols-3 gap-4 min-h-screen p-8">
-      <div className="col-span-1">
-        <Textarea
-          value={leftContent}
-          onChange={(e) => setLeftContent(e.target.value)}
-          className="w-full h-full min-h-[500px] p-4 resize-none font-mono"
-          placeholder="请输入docker-compose.yaml内容"
-        />
-      </div>
+  const handleConfigChange = (key: keyof ConfigForm, value: string) => {
+    const newConfig = { ...config, [key]: value };
+    setConfig(newConfig);
+    generateConfig(yamlInput, newConfig);
+  };
 
-      <div className="col-span-1 flex flex-col gap-6 p-4">
-        <div className="space-y-4">
+  return (
+    <div className="grid grid-cols-3 gap-4 h-screen p-4">
+      {/* 左侧表单区域 - 1/3 */}
+      <div className="col-span-1 flex flex-col gap-4 p-4">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="w-full px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
+              解析YAML
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>输入YAML配置</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Textarea
+                value={yamlInput}
+                onChange={(e) => setYamlInput(e.target.value)}
+                className="min-h-[300px] font-mono"
+                placeholder="请输入docker-compose.yaml内容"
+              />
+            </div>
+            <button
+              onClick={() => {
+                parseYaml(yamlInput);
+                setDialogOpen(false);
+              }}
+              className="w-full px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              确认
+            </button>
+          </DialogContent>
+        </Dialog>
+
+        <div className="space-y-3">
           <div className="space-y-2">
             <Label>服务名称</Label>
             <Input
               value={config.serviceName}
-              onChange={(e) => setConfig({...config, serviceName: e.target.value})}
+              onChange={(e) => handleConfigChange('serviceName', e.target.value)}
               placeholder="输入服务名称"
             />
           </div>
@@ -143,7 +180,7 @@ export default function Home() {
             <Label>端口</Label>
             <Input
               value={config.port}
-              onChange={(e) => setConfig({...config, port: e.target.value})}
+              onChange={(e) => handleConfigChange('port', e.target.value)}
               placeholder="输入端口号"
             />
           </div>
@@ -152,7 +189,7 @@ export default function Home() {
             <Label>路径前缀</Label>
             <Input
               value={config.path}
-              onChange={(e) => setConfig({...config, path: e.target.value})}
+              onChange={(e) => handleConfigChange('path', e.target.value)}
               placeholder="输入路径前缀 如: /api"
             />
           </div>
@@ -161,7 +198,7 @@ export default function Home() {
             <Label>域名规则</Label>
             <Input
               value={config.rule}
-              onChange={(e) => setConfig({...config, rule: e.target.value})}
+              onChange={(e) => handleConfigChange('rule', e.target.value)}
               placeholder="输入域名 如: api.example.com"
             />
           </div>
@@ -184,42 +221,26 @@ export default function Home() {
             </select>
           </div>
         </div>
-
-        <div className="flex flex-col gap-4 items-center mt-4">
-          <button 
-            onClick={parseYaml}
-            className="w-full px-4 py-2 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90"
-          >
-            解析YAML
-          </button>
-          <button 
-            onClick={generateConfig}
-            className="w-full px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            生成配置
-          </button>
-        </div>
       </div>
 
-      <div className="col-span-1 relative">
-        <div className="absolute inset-0 overflow-auto">
-          <SyntaxHighlighter
-            language="yaml"
-            style={themes[selectedTheme]}
-            customStyle={{
-              margin: 0,
-              minHeight: '500px',
-              fontSize: '14px',
-              padding: '1rem',
-            }}
-            className="h-full rounded-md border border-input"
-            showLineNumbers={true}
-            wrapLines={true}
-            wrapLongLines={true}
-          >
-            {rightContent || '# 生成的YAML配置将显示在这里'}
-          </SyntaxHighlighter>
-        </div>
+      {/* 右侧代码区域 - 2/3 */}
+      <div className="col-span-2">
+        <SyntaxHighlighter
+          language="yaml"
+          style={themes[selectedTheme]}
+          customStyle={{
+            margin: 0,
+            height: '100%',
+            fontSize: '14px',
+            padding: '1rem',
+          }}
+          className="h-full rounded-md border border-input"
+          showLineNumbers={true}
+          wrapLines={true}
+          wrapLongLines={true}
+        >
+          {rightContent || '# 生成的YAML配置将显示在这里'}
+        </SyntaxHighlighter>
       </div>
     </div>
   );
