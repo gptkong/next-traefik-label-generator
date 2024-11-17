@@ -129,7 +129,7 @@ export default function Home() {
             ...parsedYaml.services[Object.keys(parsedYaml.services)[0]],
             labels: [
               "traefik.enable=true",
-              `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`) && PathPrefix(\`${currentConfig.path}\`)`,
+              `traefik.http.routers.${currentConfig.serviceName}.rule=Host(\`${currentConfig.rule}\`)`,
               `traefik.http.services.${currentConfig.serviceName}.loadbalancer.server.port=${currentConfig.port}`,
               `traefik.http.routers.${currentConfig.serviceName}.entrypoints=${currentConfig.entrypoints}`,
               `traefik.http.routers.${currentConfig.serviceName}.tls.certresolver=${currentConfig.certresolver}`,
